@@ -1137,6 +1137,7 @@
     </div>
 
     <div class="p1-result" id="p1Result">🎉 맞아요! 자업자득!</div>
+    <div class="result-msg no" id="p1Miss">🤔 아직이에요. 글자 자리를 바꿔 볼까요?</div>
   </div>
 
   <button class="btn btn-primary" id="btn1" onclick="goPage(2)" disabled>다음 →</button>
@@ -1267,17 +1268,17 @@
       <div class="comp-item">
         <div class="comp-q"><span class="comp-num">1</span>욕심 많은 관리는 백성들에게 어떻게 했나요?</div>
         <div class="comp-options">
-          <div class="comp-option" onclick="pickComp(0, this, false)">친절하게 도와주었다</div>
+          <div class="comp-option" onclick="pickComp(0, this, false)">백성들을 친절하게 도와주고 세금도 덜어 주었다</div>
           <div class="comp-option" onclick="pickComp(0, this, true)">세금을 가혹하게 거두고 마음대로 벌을 주었다</div>
-          <div class="comp-option" onclick="pickComp(0, this, false)">함께 농사를 지었다</div>
+          <div class="comp-option" onclick="pickComp(0, this, false)">백성들과 함께 밭에 나가 농사를 지었다</div>
         </div>
         <div class="feedback-msg" id="fb0"></div>
       </div>
       <div class="comp-item">
         <div class="comp-q"><span class="comp-num">2</span>이 이야기에서 자업자득이 뜻하는 것은 무엇인가요?</div>
         <div class="comp-options">
-          <div class="comp-option" onclick="pickComp(1, this, false)">관리는 항상 옳은 일만 한다</div>
-          <div class="comp-option" onclick="pickComp(1, this, false)">백성은 절대 화내면 안 된다</div>
+          <div class="comp-option" onclick="pickComp(1, this, false)">높은 자리에 있는 사람은 언제나 옳은 일만 한다</div>
+          <div class="comp-option" onclick="pickComp(1, this, false)">힘없는 사람은 어떤 일이 있어도 참아야 한다</div>
           <div class="comp-option" onclick="pickComp(1, this, true)">자기가 저지른 일의 결과는 자기 스스로 받게 된다</div>
         </div>
         <div class="feedback-msg" id="fb1"></div>
@@ -1639,9 +1640,9 @@ function goComplete() {
   ];
 
   let grade;
-  if (wrongCount === 0)      grade = grades[0];
-  else if (wrongCount === 1) grade = grades[1];
-  else if (wrongCount === 2) grade = grades[2];
+  if (wrongCount<=1)      grade=grades[0];
+  else if (wrongCount<=3) grade=grades[1];
+  else if (wrongCount<=5) grade=grades[2];
   else                       grade = grades[3];
 
   setTimeout(() => {
@@ -1662,7 +1663,7 @@ function goComplete() {
     const prevGrade = prog['jaeopjadeuk']?.grade;
     // 더 좋은 등급이면 업데이트
     const gradeOrder = { diamond:4, gold:3, silver:2, bronze:1 };
-    const newGradeKey = wrongCount === 0 ? 'diamond' : wrongCount === 1 ? 'gold' : wrongCount === 2 ? 'silver' : 'bronze';
+    const newGradeKey = grade.key;
     if (!prevGrade || (gradeOrder[newGradeKey] > gradeOrder[prevGrade])) {
       prog['jaeopjadeuk'] = { grade: newGradeKey, date: new Date().toISOString() };
       localStorage.setItem('sajasungeo_progress', JSON.stringify(prog));
@@ -1872,11 +1873,15 @@ function checkP1() {
   const norm = (s) => s ? s.replace(/[12]$/, '') : s;
   const correct = norm(slots[0])==='자' && norm(slots[1])==='업' && norm(slots[2])==='자' && norm(slots[3])==='득';
   if (correct) {
-    document.getElementById('p1Result').classList.add('show');
+    document.getElementById('p1Result').classList.add('show');{const m=document.getElementById('p1Miss');if(m)m.classList.remove('show');}
     document.getElementById('btn1').disabled = false;
     earnedScore += 10; totalScore += 10;
   } else {
-    totalScore += 0;
+    const p1Miss=document.getElementById('p1Miss');
+    if(p1Miss){
+      if(slots.every(t=>t)){p1Miss.classList.add('show');if(!p1Missed){p1Missed=true;wrongCount++;}}
+      else p1Miss.classList.remove('show');
+    }
   }
 }
 
@@ -1893,7 +1898,7 @@ function pickChar(idx, el, correct) {
     earnedScore += 5;
   } else {
     el.classList.add('selected-wrong');
-    ci.classList.add('wrong');
+    ci.classList.add('wrong');wrongCount++;
   }
   totalScore += 5;
   charDone[idx] = true;
@@ -1921,7 +1926,7 @@ function pickFinal(el, correct) {
     el.classList.add('selected-wrong');
     msg.textContent = '🤔 다시 읽어보세요. 물건을 보면 갖고 싶은 마음이 생기는 거예요!';
     msg.className = 'result-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
     document.getElementById('btn2').disabled = false;
   }
 }
@@ -1946,7 +1951,7 @@ function pickComp(idx, el, correct) {
     opts.forEach(o => { if (o.onclick && o.onclick.toString().includes('true')) o.classList.add('selected-correct'); });
     fb.textContent = '💡 아쉬워요! 정답을 확인해보세요.';
     fb.className = 'feedback-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
   }
   compCount++;
   if (compCount === 2) {
@@ -2001,7 +2006,7 @@ function pickSituation(idx) {
     } else {
       msg.textContent = '💡 ①번과 ③번이 자업자득에 어울리는 상황이에요!';
       msg.className = 'result-msg show no';
-      totalScore += 10;
+      totalScore += 10;wrongCount++;
     }
     setTimeout(() => { document.getElementById('confirmQuiz').style.display = 'block'; }, 500);
   }
@@ -2420,7 +2425,7 @@ function pickConfirm(el, correct) {
     el.classList.add('selected-wrong');
     msg.textContent = '💡 정답은 "자기가 저지른 일의 결과는 자기 스스로 받게 된다"예요!';
     msg.className = 'result-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
   }
   document.getElementById('btn4').disabled = false;
 }

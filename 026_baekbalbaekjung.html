@@ -1238,6 +1238,7 @@
       <div class="tile" draggable="true" data-char="발" data-idx="1" id="tile1">발</div>
     </div>
     <div class="p1-result" id="p1Result">🎉 맞아요! 백발백중!</div>
+    <div class="result-msg no" id="p1Miss">🤔 아직이에요. 글자 자리를 바꿔 볼까요?</div>
   </div>
   <button class="btn btn-primary" id="btn1" onclick="goPage(2)" disabled>다음 →</button>
 </div>
@@ -1350,9 +1351,9 @@
       <div class="comp-item">
         <div class="comp-q"><span class="comp-num">2</span>신궁이 화살을 백 번 쏘았을 때 결과는 어땠나요?</div>
         <div class="comp-options">
-          <div class="comp-option" onclick="pickComp(1,this,false)">절반만 과녁에 맞았다</div>
+          <div class="comp-option" onclick="pickComp(1,this,false)">쏜 화살 절반만 과녁에 맞았다</div>
+          <div class="comp-option" onclick="pickComp(1,this,false)">화살을 한 발도 맞히지 못했다</div>
           <div class="comp-option" onclick="pickComp(1,this,true)">화살이 모두 과녁 가운데에 맞았다</div>
-          <div class="comp-option" onclick="pickComp(1,this,false)">화살을 하나도 못 맞혔다</div>
         </div>
         <div class="feedback-msg" id="fb1"></div>
       </div>
@@ -1643,9 +1644,9 @@ function goComplete() {
     {key:'bronze',gem:'🥉',title:'브론즈',desc:'3번 이상 틀렸어요. 다시 도전해봐요!',elemId:'gi-bronze',wrong:99},
   ];
   let grade;
-  if(wrongCount===0) grade=grades[0];
-  else if(wrongCount===1) grade=grades[1];
-  else if(wrongCount===2) grade=grades[2];
+  if(wrongCount<=1) grade=grades[0];
+  else if(wrongCount<=3) grade=grades[1];
+  else if(wrongCount<=5) grade=grades[2];
   else grade=grades[3];
 
   setTimeout(()=>{
@@ -1660,7 +1661,7 @@ function goComplete() {
     const prog=JSON.parse(localStorage.getItem('sajasungeo_progress')||'{}');
     const prevGrade=prog['baekbalbaekjung']?.grade;
     const gradeOrder={diamond:4,gold:3,silver:2,bronze:1};
-    const newGradeKey=wrongCount===0?'diamond':wrongCount===1?'gold':wrongCount===2?'silver':'bronze';
+    const newGradeKey=grade.key;
     if(!prevGrade||(gradeOrder[newGradeKey]>gradeOrder[prevGrade])) {
       prog['baekbalbaekjung']={grade:newGradeKey,date:new Date().toISOString()};
       localStorage.setItem('sajasungeo_progress',JSON.stringify(prog));
@@ -1805,9 +1806,16 @@ function checkP1() {
   const chars=slots.map(id=>id?document.getElementById(id).dataset.char:null);
   const correct=chars[0]==='백'&&chars[1]==='발'&&chars[2]==='백'&&chars[3]==='중';
   if(correct){
-    document.getElementById('p1Result').classList.add('show');
+    document.getElementById('p1Result').classList.add('show');{const m=document.getElementById('p1Miss');if(m)m.classList.remove('show');}
     document.getElementById('btn1').disabled=false;
     earnedScore+=10;totalScore+=10;
+  }
+  else {
+    const p1Miss=document.getElementById('p1Miss');
+    if(p1Miss){
+      if(slots.every(t=>t)){p1Miss.classList.add('show');if(!p1Missed){p1Missed=true;wrongCount++;}}
+      else p1Miss.classList.remove('show');
+    }
   }
 }
 

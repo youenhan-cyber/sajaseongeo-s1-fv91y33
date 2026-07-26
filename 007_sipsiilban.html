@@ -1121,6 +1121,7 @@
     </div>
 
     <div class="p1-result" id="p1Result">🎉 맞아요! 십시일반!</div>
+    <div class="result-msg no" id="p1Miss">🤔 아직이에요. 글자 자리를 바꿔 볼까요?</div>
   </div>
 
   <button class="btn btn-primary" id="btn1" onclick="goPage(2)" disabled>다음 →</button>
@@ -1257,8 +1258,8 @@
         <div class="comp-q"><span class="comp-num">1</span>마을 사람들은 쌀을 얼마씩 모았나요?</div>
         <div class="comp-options">
           <div class="comp-option" onclick="pickComp(0, this, false)">집집마다 한 가마니씩 모았다</div>
-          <div class="comp-option" onclick="pickComp(0, this, true)">저마다 한 숟가락씩 모았다</div>
           <div class="comp-option" onclick="pickComp(0, this, false)">한 사람이 열 그릇을 냈다</div>
+          <div class="comp-option" onclick="pickComp(0, this, true)">저마다 한 숟가락씩 모았다</div>
         </div>
         <div class="feedback-msg" id="fb0"></div>
       </div>
@@ -1610,9 +1611,9 @@ function goComplete() {
   ];
 
   let grade;
-  if (wrongCount === 0)      grade = grades[0];
-  else if (wrongCount === 1) grade = grades[1];
-  else if (wrongCount === 2) grade = grades[2];
+  if (wrongCount<=1)      grade=grades[0];
+  else if (wrongCount<=3) grade=grades[1];
+  else if (wrongCount<=5) grade=grades[2];
   else                       grade = grades[3];
 
   setTimeout(() => {
@@ -1633,7 +1634,7 @@ function goComplete() {
     const prevGrade = prog['sipsiilban']?.grade;
     // 더 좋은 등급이면 업데이트
     const gradeOrder = { diamond:4, gold:3, silver:2, bronze:1 };
-    const newGradeKey = wrongCount === 0 ? 'diamond' : wrongCount === 1 ? 'gold' : wrongCount === 2 ? 'silver' : 'bronze';
+    const newGradeKey = grade.key;
     if (!prevGrade || (gradeOrder[newGradeKey] > gradeOrder[prevGrade])) {
       prog['sipsiilban'] = { grade: newGradeKey, date: new Date().toISOString() };
       localStorage.setItem('sajasungeo_progress', JSON.stringify(prog));
@@ -1843,11 +1844,15 @@ async function speakNote(el) {
 function checkP1() {
   const correct = slots[0]==='십' && slots[1]==='시' && slots[2]==='일' && slots[3]==='반';
   if (correct) {
-    document.getElementById('p1Result').classList.add('show');
+    document.getElementById('p1Result').classList.add('show');{const m=document.getElementById('p1Miss');if(m)m.classList.remove('show');}
     document.getElementById('btn1').disabled = false;
     earnedScore += 10; totalScore += 10;
   } else {
-    totalScore += 0;
+    const p1Miss=document.getElementById('p1Miss');
+    if(p1Miss){
+      if(slots.every(t=>t)){p1Miss.classList.add('show');if(!p1Missed){p1Missed=true;wrongCount++;}}
+      else p1Miss.classList.remove('show');
+    }
   }
 }
 
@@ -1864,7 +1869,7 @@ function pickChar(idx, el, correct) {
     earnedScore += 5;
   } else {
     el.classList.add('selected-wrong');
-    ci.classList.add('wrong');
+    ci.classList.add('wrong');wrongCount++;
   }
   totalScore += 5;
   charDone[idx] = true;
@@ -1892,7 +1897,7 @@ function pickFinal(el, correct) {
     el.classList.add('selected-wrong');
     msg.textContent = '🤔 다시 읽어보세요. 물건을 보면 갖고 싶은 마음이 생기는 거예요!';
     msg.className = 'result-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
     document.getElementById('btn2').disabled = false;
   }
 }
@@ -1917,7 +1922,7 @@ function pickComp(idx, el, correct) {
     opts.forEach(o => { if (o.onclick && o.onclick.toString().includes('true')) o.classList.add('selected-correct'); });
     fb.textContent = '💡 아쉬워요! 정답을 확인해보세요.';
     fb.className = 'feedback-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
   }
   compCount++;
   if (compCount === 2) {
@@ -1972,7 +1977,7 @@ function pickSituation(idx) {
     } else {
       msg.textContent = '💡 ①번과 ③번이 십시일반에 어울리는 상황이에요!';
       msg.className = 'result-msg show no';
-      totalScore += 10;
+      totalScore += 10;wrongCount++;
     }
     setTimeout(() => { document.getElementById('confirmQuiz').style.display = 'block'; }, 500);
   }
@@ -2384,7 +2389,7 @@ function pickConfirm(el, correct) {
     el.classList.add('selected-wrong');
     msg.textContent = '💡 정답은 "여러 사람이 조금씩 도우면 큰 도움이 된다"예요!';
     msg.className = 'result-msg show no';
-    totalScore += 10;
+    totalScore += 10;wrongCount++;
   }
   document.getElementById('btn4').disabled = false;
 }
