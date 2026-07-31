@@ -398,7 +398,7 @@
 </div>
 <script>
 (function(){
-  var ST=1, SALT='urimal-s1-2026', SRC='codes.json';
+  var ST=1, SALT='urimal-tamheom-2026', SRC='codes.json';
   var KEY='ut_access_s'+ST;
   var LIST=null;                     // 현재 유효한 해시 목록
   document.documentElement.classList.add('ut-locked');
@@ -422,7 +422,7 @@
     return fetch(url,{cache:'no-store'})
       .then(function(r){ if(!r.ok) throw 0; return r.json(); })
       .then(function(j){
-        var a=(j && j['s'+ST]) || (j && j.codes) || null;
+        var a=(j && j.codes) || null;
         if(!Array.isArray(a)) throw 0;
         LIST=a; return a;
       });
